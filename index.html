@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gauss Elimination Calculator</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header class="header">
+            <div>
+                <h1>Gauss Elimination</h1>
+                <p>حل أنظمة المعادلات الخطية خطوة بخطوة</p>
+            </div>
+        </header>
+
+
+        <section class="input-card">
+
+            <div class="settings">
+
+                <div class="input-group">
+                    <label for="variablesCount">
+                        عدد المجهولات
+                    </label>
+
+                    <select id="variablesCount">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+
+
+                <div class="input-group">
+                    <label for="equationsCount">
+                        عدد المعادلات
+                    </label>
+
+                    <select id="equationsCount">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+
+
+                <div class="input-group">
+                    <label for="mode">
+                        نوع الحل
+                    </label>
+
+                    <select id="mode">
+                        <option value="REF">REF</option>
+                        <option value="RREF" selected>RREF</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <div class="equation-help">
+                <strong>طريقة كتابة المعادلة:</strong>
+
+                <span>
+                    2x - y + 3z = 10
+                </span>
+            </div>
+
+
+            <div class="equation-input-area">
+
+                <input
+                    type="text"
+                    id="equationInput"
+                    placeholder="اكتب المعادلة هنا..."
+                    autocomplete="off"
+                >
+
+                <button id="addEquationBtn" class="primary-btn">
+                    إضافة المعادلة
+                </button>
+
+            </div>
+
+
+            <div class="input-actions">
+
+                <button id="editLastBtn" class="secondary-btn">
+                    تعديل آخر معادلة
+                </button>
+
+                <button id="buildBtn" class="success-btn" disabled>
+                    بناء المصفوفة
+                </button>
+
+                <button id="resetInputBtn" class="danger-btn">
+                    إعادة الإدخال
+                </button>
+
+            </div>
+
+
+            <div class="equations-header">
+
+                <h3>المعادلات المدخلة</h3>
+
+                <span id="equationCounter">
+                    0 / 3
+                </span>
+
+            </div>
+
+
+            <div id="equationsList" class="equations-list">
+                <div class="empty-message">
+                    لم يتم إدخال أي معادلات بعد
+                </div>
+            </div>
+
+        </section>
+
+
+        <section class="steps-card">
+
+            <div class="status-area">
+
+                <div id="statusMessage" class="status-message">
+                    في انتظار إدخال المعادلات...
+                </div>
+
+                <div id="stepCounter" class="step-counter">
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="matrix-title">
+                Augmented Matrix
+            </div>
+
+
+            <div class="matrix-wrapper">
+
+                <table id="matrixTable">
+                </table>
+
+            </div>
+
+
+            <div class="operation-box">
+
+                <div class="operation-title">
+                    العملية الحالية
+                </div>
+
+                <div id="operationText">
+                    لم تبدأ الخوارزمية بعد.
+                </div>
+
+            </div>
+
+
+            <div class="controls">
+
+                <button id="previousBtn" disabled>
+                    الخطوة السابقة
+                </button>
+
+                <button id="autoBtn" disabled>
+                    تشغيل تلقائي
+                </button>
+
+                <button id="nextBtn" disabled>
+                    الخطوة التالية
+                </button>
+
+                <button id="resetStepsBtn" disabled>
+                    إعادة الخطوات
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section class="info-card">
+
+            <h2>العمليات المسموح بها على الصفوف</h2>
+
+            <div class="operations-grid">
+
+                <div class="operation">
+                    <span>1</span>
+                    <div>
+                        <h3>تبديل الصفوف</h3>
+                        <p>Ri ↔ Rj</p>
+                    </div>
+                </div>
+
+
+                <div class="operation">
+                    <span>2</span>
+                    <div>
+                        <h3>ضرب صف في رقم غير صفري</h3>
+                        <p>Ri → kRi</p>
+                    </div>
+                </div>
+
+
+                <div class="operation">
+                    <span>3</span>
+                    <div>
+                        <h3>إضافة مضاعف صف إلى صف آخر</h3>
+                        <p>Ri → Ri + kRj</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <script src="main.js"></script>
+
+</body>
+</html>
