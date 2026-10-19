@@ -1,7 +1,5 @@
 "use strict";
 
-const EPS = 1e-9;
-
 const variablesCount = document.getElementById("variablesCount");
 const equationsCount = document.getElementById("equationsCount");
 const mode = document.getElementById("mode");
@@ -11,35 +9,29 @@ const solveBtn = document.getElementById("solveBtn");
 const clearBtn = document.getElementById("clearBtn");
 
 const statusMessage = document.getElementById("statusMessage");
-const stepCounter = document.getElementById("stepCounter");
-const operationText = document.getElementById("operationText");
 const matrixTable = document.getElementById("matrixTable");
+const stepsCard = document.getElementById("stepsCard");
+const stepsGrid = document.getElementById("stepsGrid");
+const stepsSection = document.getElementById("stepsSection");
+const toggleStepsBtn = document.getElementById("toggleStepsBtn");
 const resultBox = document.getElementById("resultBox");
 
-const previousBtn = document.getElementById("previousBtn");
-const nextBtn = document.getElementById("nextBtn");
-const autoBtn = document.getElementById("autoBtn");
-const resetStepsBtn = document.getElementById("resetStepsBtn");
 
 let n = 3;
 let m = 3;
 let steps = [];
-let stepIndex = -1;
-let autoTimer = null;
 
 buildGrid();
 renderEmptyMatrix();
 renderExamples();
+wireTryButtons();
 
 variablesCount.addEventListener("change", function () { buildGrid(); resetOutput(); });
 equationsCount.addEventListener("change", function () { buildGrid(); resetOutput(); });
 mode.addEventListener("change", function () { if (steps.length > 0) solve(); });
 solveBtn.addEventListener("click", solve);
+toggleStepsBtn.addEventListener("click", toggleSteps);
 clearBtn.addEventListener("click", function () { buildGrid(true); resetOutput(); });
-previousBtn.addEventListener("click", previousStep);
-nextBtn.addEventListener("click", nextStep);
-autoBtn.addEventListener("click", toggleAuto);
-resetStepsBtn.addEventListener("click", resetSteps);
 
 function buildGrid(clear) {
     const old = {};
@@ -84,16 +76,47 @@ function buildGrid(clear) {
             }
 
             inp.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    focusNext(r, c);
-                }
+                handleKey(e, r, c);
             });
 
             td.appendChild(inp);
             tr.appendChild(td);
         }
         inputGrid.appendChild(tr);
+    }
+}
+
+function handleKey(e, r, c) {
+    const inp = e.target;
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        focusNext(r, c);
+    } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusCell(r + 1, c);
+    } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusCell(r - 1, c);
+    } else if (e.key === "ArrowRight" && inp.selectionEnd === inp.value.length) {
+        e.preventDefault();
+        focusCell(r, c + 1);
+    } else if (e.key === "ArrowLeft" && inp.selectionStart === 0) {
+        e.preventDefault();
+        focusCell(r, c - 1);
+    }
+}
+
+function focusCell(r, c) {
+    if (r < 0 || r >= m || c < 0 || c > n) return;
+
+    const target = inputGrid.querySelector(
+        'input[data-r="' + r + '"][data-c="' + c + '"]'
+    );
+
+    if (target) {
+        target.focus();
+        target.select();
     }
 }
 
@@ -117,21 +140,107 @@ function focusNext(r, c) {
     }
 }
 
+function gcd(a, b) {
+    a = a < 0n ? -a : a;
+    b = b < 0n ? -b : b;
+
+    while (b !== 0n) {
+        const t = a % b;
+        a = b;
+        b = t;
+    }
+
+    return a;
+}
+
+function makeFrac(num, den) {
+    if (den < 0n) {
+        num = -num;
+        den = -den;
+    }
+
+    const g = gcd(num, den) || 1n;
+
+    return { n: num / g, d: den / g };
+}
+
+const ZERO = makeFrac(0n, 1n);
+const ONE = makeFrac(1n, 1n);
+
+function fadd(a, b) {
+    return makeFrac(a.n * b.d + b.n * a.d, a.d * b.d);
+}
+
+function fsub(a, b) {
+    return makeFrac(a.n * b.d - b.n * a.d, a.d * b.d);
+}
+
+function fmul(a, b) {
+    return makeFrac(a.n * b.n, a.d * b.d);
+}
+
+function fdiv(a, b) {
+    return makeFrac(a.n * b.d, a.d * b.n);
+}
+
+function fneg(a) {
+    return { n: -a.n, d: a.d };
+}
+
+function isZero(a) {
+    return a.n === 0n;
+}
+
+function isOne(a) {
+    return a.n === 1n && a.d === 1n;
+}
+
+function parseDecimal(s) {
+    const match = s.match(/^([+-]?)(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/);
+
+    if (!match) return null;
+
+    const intPart = match[2] || "";
+    const fracPart = match[3] || "";
+
+    if (intPart === "" && fracPart === "") return null;
+
+    let num = BigInt((intPart || "0") + fracPart);
+    const exp = (match[4] ? Number(match[4]) : 0) - fracPart.length;
+
+    if (Math.abs(exp) > 60) return null;
+
+    let den = 1n;
+
+    if (exp >= 0) {
+        num *= 10n ** BigInt(exp);
+    } else {
+        den = 10n ** BigInt(-exp);
+    }
+
+    if (match[1] === "-") num = -num;
+
+    return makeFrac(num, den);
+}
+
 function parseValue(text) {
-    let s = text.trim().replace(/−/g, "-").replace(/\s+/g, "");
-    if (s === "") return 0;
+    const s = text.trim().replace(/−/g, "-").replace(/\s+/g, "");
+
+    if (s === "") return ZERO;
 
     if (s.includes("/")) {
         const parts = s.split("/");
-        if (parts.length !== 2) return NaN;
-        const a = Number(parts[0]);
-        const b = Number(parts[1]);
-        if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return NaN;
-        return a / b;
+        if (parts.length !== 2) return null;
+
+        const a = parseDecimal(parts[0]);
+        const b = parseDecimal(parts[1]);
+
+        if (a === null || b === null || isZero(b)) return null;
+
+        return fdiv(a, b);
     }
 
-    const v = Number(s);
-    return Number.isFinite(v) ? v : NaN;
+    return parseDecimal(s);
 }
 
 function readMatrix() {
@@ -149,7 +258,7 @@ function readMatrix() {
                 'input[data-r="' + r + '"][data-c="' + c + '"]'
             );
             const v = parseValue(inp.value);
-            if (Number.isNaN(v)) {
+            if (v === null) {
                 inp.classList.add("invalid");
                 ok = false;
             }
@@ -162,8 +271,6 @@ function readMatrix() {
 }
 
 function solve() {
-    stopAuto();
-
     const matrix = readMatrix();
 
     if (!matrix) {
@@ -174,13 +281,14 @@ function solve() {
     const gaussJordan = mode.value === "RREF";
 
     steps = computeSteps(matrix, gaussJordan);
-    stepIndex = 0;
 
-    showCurrent();
+    statusMessage.textContent = "تم بناء المصفوفة اضغط على زر اظهار الخطوات لترى الحل بالتفصيل.";
 
-    autoBtn.disabled = false;
-    resetStepsBtn.disabled = false;
+    stepsCard.classList.remove("hidden");
 
+    renderMatrix(matrix);
+    renderSteps(steps);
+    toggleStepsBtn.disabled = false;
     renderResult(analyze(steps[steps.length - 1].matrix));
 }
 
@@ -190,30 +298,15 @@ function computeSteps(original, gaussJordan) {
     const rows = matrix.length;
     const cols = matrix[0].length;
 
-    result.push({
-        title: "المصفوفة المبدئية (Augmented Matrix)",
-        op: "-",
-        matrix: cloneMatrix(matrix),
-        row: -1, col: -1, pivotRow: -1
-    });
-
     let r = 0;
 
-    for (let col = 0; col < cols - 1 && r < rows; col++) {
+    for (let col = 0; col < cols && r < rows; col++) {
         let p = -1;
         for (let i = r; i < rows; i++) {
-            if (Math.abs(matrix[i][col]) > EPS) { p = i; break; }
+            if (!isZero(matrix[i][col])) { p = i; break; }
         }
 
-        if (p === -1) {
-            result.push({
-                title: "العمود " + getVariableName(col) + " كله أصفار من هذا الصف لأسفل، لذلك نتخطاه.",
-                op: "لا يوجد عملية",
-                matrix: cloneMatrix(matrix),
-                row: -1, col: col, pivotRow: -1
-            });
-            continue;
-        }
+        if (p === -1) continue;
 
         if (p !== r) {
             const tmp = matrix[r];
@@ -221,61 +314,72 @@ function computeSteps(original, gaussJordan) {
             matrix[p] = tmp;
 
             result.push({
-                title: "تبديل صفين (العنصر الأول في العمود يساوي صفر).",
-                op: "r" + (r + 1) + " <=> r" + (p + 1),
+                title: "",
+                ops: ["R" + (r + 1) + " <=> R" + (p + 1)],
                 matrix: cloneMatrix(matrix),
-                row: r, col: col, pivotRow: r
+                changed: [r, p],
+                pivotRow: r,
+                pivotCol: col
             });
         }
 
         const pivot = matrix[r][col];
-        if (Math.abs(pivot - 1) > EPS) {
-            for (let c = 0; c < cols; c++) matrix[r][c] /= pivot;
-            cleanMatrix(matrix);
+        if (!isOne(pivot)) {
+            matrix[r] = matrix[r].map(function (x) { return fdiv(x, pivot); });
 
             result.push({
-                title: "ضرب صف في ثابت غير صفري لنحصل على Leading 1.",
-                op: coefText(1 / pivot) + "r" + (r + 1) + " => r" + (r + 1),
+                title: "",
+                ops: [coefText(fdiv(ONE, pivot)) + "R" + (r + 1) + " => R" + (r + 1)],
                 matrix: cloneMatrix(matrix),
-                row: r, col: col, pivotRow: r
+                changed: [r],
+                pivotRow: r,
+                pivotCol: col
             });
         }
 
         const start = gaussJordan ? 0 : r + 1;
+        const ops = [];
+        const changed = [];
 
         for (let i = start; i < rows; i++) {
             if (i === r) continue;
 
             const factor = matrix[i][col];
-            if (Math.abs(factor) < EPS) continue;
+            if (isZero(factor)) continue;
 
-            for (let c = 0; c < cols; c++) {
-                matrix[i][c] -= factor * matrix[r][c];
-            }
-            cleanMatrix(matrix);
+            const pivotRow = matrix[r];
+            matrix[i] = matrix[i].map(function (x, c) {
+                return fsub(x, fmul(factor, pivotRow[c]));
+            });
 
-            const where = i < r ? "أعلى" : "أسفل";
+            ops.push(coefText(fneg(factor)) + "R" + (r + 1) + " + R" + (i + 1) + " => R" + (i + 1));
+            changed.push(i);
+        }
 
+        if (ops.length > 0) {
             result.push({
-                title: "ضرب صف في ثابت غير صفري وجمعه على صف آخر لتصفير العنصر " + where + " الـ leading.",
-                op: coefText(-factor) + "r" + (r + 1) + " + r" + (i + 1) + " => r" + (i + 1),
+                title: "",
+                ops: ops,
                 matrix: cloneMatrix(matrix),
-                row: i, col: col, pivotRow: r
+                changed: changed,
+                pivotRow: r,
+                pivotCol: col
             });
         }
 
         r++;
     }
 
-    cleanMatrix(matrix);
-
     result.push({
         title: gaussJordan
             ? "وصلنا إلى Reduced Row Echelon Form (Gauss-Jordan)"
             : "وصلنا إلى Row Echelon Form (Gaussian)",
-        op: "-",
+        ops: [],
         matrix: cloneMatrix(matrix),
-        row: -1, col: -1, pivotRow: -1
+        changed: [],
+        pivotRow: -1,
+        pivotCol: -1,
+        final: true
     });
 
     return result;
@@ -288,16 +392,13 @@ function analyze(matrix) {
 
     for (let i = 0; i < rows; i++) {
         let lead = -1;
-        for (let c = 0; c < n; c++) {
-            if (Math.abs(matrix[i][c]) > EPS) { lead = c; break; }
+        for (let c = 0; c <= n; c++) {
+            if (!isZero(matrix[i][c])) { lead = c; break; }
         }
 
-        if (lead === -1) {
-            if (Math.abs(matrix[i][n]) > EPS) {
-                return { type: "none" };
-            }
-            continue;
-        }
+        if (lead === -1) continue;
+
+        if (lead === n) return { type: "none" };
 
         pivotRows.push(i);
         pivotCols.push(lead);
@@ -312,8 +413,8 @@ function analyze(matrix) {
     const x = new Array(n).fill(null);
 
     free.forEach(function (c, k) {
-        const v = new Array(size).fill(0);
-        v[k + 1] = 1;
+        const v = new Array(size).fill(ZERO);
+        v[k + 1] = ONE;
         x[c] = v;
     });
 
@@ -322,18 +423,18 @@ function analyze(matrix) {
         const p = pivotCols[k];
         const lead = matrix[i][p];
 
-        const v = new Array(size).fill(0);
+        const v = new Array(size).fill(ZERO);
         v[0] = matrix[i][n];
 
         for (let j = p + 1; j < n; j++) {
             const a = matrix[i][j];
-            if (Math.abs(a) < EPS) continue;
+            if (isZero(a)) continue;
             for (let t = 0; t < size; t++) {
-                v[t] -= a * x[j][t];
+                v[t] = fsub(v[t], fmul(a, x[j][t]));
             }
         }
 
-        for (let t = 0; t < size; t++) v[t] /= lead;
+        for (let t = 0; t < size; t++) v[t] = fdiv(v[t], lead);
         x[p] = v;
     }
 
@@ -347,22 +448,23 @@ function analyze(matrix) {
 function expression(vec, free) {
     let text = "";
 
-    if (Math.abs(vec[0]) > EPS) {
+    if (!isZero(vec[0])) {
         text = formatNumber(vec[0]);
     }
 
     for (let k = 0; k < free.length; k++) {
         const a = vec[k + 1];
-        if (Math.abs(a) < EPS) continue;
+        if (isZero(a)) continue;
 
         const name = getVariableName(free[k]);
-        const abs = Math.abs(a);
-        const coef = Math.abs(abs - 1) < EPS ? "" : formatNumber(abs);
+        const negative = a.n < 0n;
+        const abs = negative ? fneg(a) : a;
+        const coef = isOne(abs) ? "" : formatNumber(abs);
 
         if (text === "") {
-            text = (a < 0 ? "−" : "") + coef + name;
+            text = (negative ? "−" : "") + coef + name;
         } else {
-            text += (a < 0 ? " − " : " + ") + coef + name;
+            text += (negative ? " − " : " + ") + coef + name;
         }
     }
 
@@ -419,22 +521,7 @@ function renderResult(res) {
     resultBox.appendChild(list);
 }
 
-function showCurrent() {
-    if (stepIndex < 0 || stepIndex >= steps.length) return;
-
-    const cur = steps[stepIndex];
-
-    renderMatrix(cur.matrix, cur.row, cur.col, cur.pivotRow);
-
-    stepCounter.textContent = "الخطوة " + (stepIndex + 1) + " من " + steps.length;
-    statusMessage.textContent = cur.title;
-    operationText.textContent = cur.op;
-
-    previousBtn.disabled = stepIndex <= 0;
-    nextBtn.disabled = stepIndex >= steps.length - 1;
-}
-
-function renderMatrix(matrix, hRow, hCol, pRow) {
+function renderMatrix(matrix) {
     matrixTable.innerHTML = "";
     if (!matrix) return;
 
@@ -452,15 +539,79 @@ function renderMatrix(matrix, hRow, hCol, pRow) {
         for (let c = 0; c < matrix[r].length; c++) {
             const td = document.createElement("td");
             td.textContent = formatNumber(matrix[r][c]);
-
-            if (r === hRow) td.classList.add("highlight-row");
-            if (c === hCol) td.classList.add("highlight-column");
-            if (r === pRow && c === hCol) td.classList.add("pivot");
-
             tr.appendChild(td);
         }
         matrixTable.appendChild(tr);
     }
+}
+
+function renderSteps(list) {
+    stepsGrid.innerHTML = "";
+
+    list.forEach(function (step, index) {
+        const card = document.createElement("div");
+        card.className = "step-card" + (step.final ? " final" : "");
+
+        const head = document.createElement("div");
+        head.className = "step-head";
+
+        const num = document.createElement("span");
+        num.className = "step-num";
+        num.textContent = step.final ? "✓" : String(index + 1);
+
+        head.appendChild(num);
+
+        if (step.title) {
+            const title = document.createElement("span");
+            title.className = "step-title";
+            title.textContent = step.title;
+            head.appendChild(title);
+        }
+        card.appendChild(head);
+
+        if (step.ops.length > 0) {
+            const opsBox = document.createElement("div");
+            opsBox.className = "step-ops";
+
+            step.ops.forEach(function (op) {
+                const line = document.createElement("div");
+                line.textContent = op;
+                opsBox.appendChild(line);
+            });
+
+            card.appendChild(opsBox);
+        }
+
+        const wrap = document.createElement("div");
+        wrap.className = "step-matrix-wrap";
+        wrap.appendChild(buildStepMatrix(step));
+        card.appendChild(wrap);
+
+        stepsGrid.appendChild(card);
+    });
+}
+
+function buildStepMatrix(step) {
+    const table = document.createElement("table");
+    table.className = "step-matrix" + (step.matrix[0].length > 7 ? " compact" : "");
+
+    step.matrix.forEach(function (row, r) {
+        const tr = document.createElement("tr");
+
+        row.forEach(function (value, c) {
+            const td = document.createElement("td");
+            td.textContent = formatNumber(value);
+
+            if (step.changed.includes(r)) td.classList.add("changed");
+            if (r === step.pivotRow && c === step.pivotCol) td.classList.add("pivot");
+
+            tr.appendChild(td);
+        });
+
+        table.appendChild(tr);
+    });
+
+    return table;
 }
 
 function renderEmptyMatrix() {
@@ -474,68 +625,25 @@ function renderEmptyMatrix() {
     matrixTable.appendChild(tr);
 }
 
-function nextStep() {
-    if (steps.length === 0) return;
+function toggleSteps() {
+    const hidden = stepsSection.classList.toggle("hidden");
 
-    if (stepIndex < steps.length - 1) {
-        stepIndex++;
-        showCurrent();
-    } else {
-        stopAuto();
-    }
-
-    if (stepIndex >= steps.length - 1) stopAuto();
+    toggleStepsBtn.textContent = hidden ? "إظهار خطوات الحل" : "إخفاء خطوات الحل";
 }
 
-function previousStep() {
-    if (steps.length === 0) return;
-    if (stepIndex > 0) {
-        stepIndex--;
-        showCurrent();
-    }
-}
-
-function toggleAuto() {
-    if (autoTimer !== null) {
-        stopAuto();
-        return;
-    }
-
-    if (stepIndex >= steps.length - 1) {
-        stepIndex = 0;
-        showCurrent();
-    }
-
-    autoBtn.textContent = "إيقاف";
-    autoTimer = setInterval(nextStep, 900);
-}
-
-function stopAuto() {
-    if (autoTimer !== null) {
-        clearInterval(autoTimer);
-        autoTimer = null;
-    }
-    autoBtn.textContent = "تشغيل تلقائي";
-}
-
-function resetSteps() {
-    stopAuto();
-    if (steps.length > 0) {
-        stepIndex = 0;
-        showCurrent();
-    }
+function hideSteps() {
+    stepsSection.classList.add("hidden");
+    toggleStepsBtn.textContent = "إظهار خطوات الحل";
 }
 
 function resetOutput() {
-    stopAuto();
-
     steps = [];
-    stepIndex = -1;
 
-    previousBtn.disabled = true;
-    nextBtn.disabled = true;
-    autoBtn.disabled = true;
-    resetStepsBtn.disabled = true;
+    hideSteps();
+    toggleStepsBtn.disabled = true;
+    stepsCard.classList.add("hidden");
+
+    stepsGrid.innerHTML = "";
 
     resultBox.className = "result-box hidden";
     resultBox.innerHTML = "";
@@ -543,29 +651,38 @@ function resetOutput() {
     renderEmptyMatrix();
 
     statusMessage.textContent = "في انتظار إدخال المعاملات...";
-    stepCounter.textContent = "-";
-    operationText.textContent = "لم تبدأ الخوارزمية بعد.";
 }
 
 function cloneMatrix(matrix) {
     return matrix.map(function (row) { return row.slice(); });
 }
 
-function cleanMatrix(matrix) {
-    for (let r = 0; r < matrix.length; r++) {
-        for (let c = 0; c < matrix[r].length; c++) {
-            if (Math.abs(matrix[r][c]) < EPS) matrix[r][c] = 0;
-        }
-    }
+function toDecimal(a, digits) {
+    const negative = a.n < 0n;
+    const num = negative ? -a.n : a.n;
+    const scale = 10n ** BigInt(digits);
+    const scaled = (2n * num * scale + a.d) / (2n * a.d);
+
+    const intPart = scaled / scale;
+    let fracPart = (scaled % scale).toString().padStart(digits, "0").replace(/0+$/, "");
+
+    let text = intPart.toString();
+    if (fracPart !== "") text += "." + fracPart;
+
+    return { text: text, zero: scaled === 0n, negative: negative };
 }
 
 function formatNumber(value) {
-    if (Math.abs(value) < EPS) return "0";
+    if (isZero(value)) return "0";
 
-    const rounded = Math.round(value);
-    if (Math.abs(value - rounded) < 1e-9) return String(rounded);
+    if (value.d === 1n) return value.n.toString();
 
-    return Number(value.toFixed(3)).toString();
+    for (const digits of [3, 6, 9]) {
+        const r = toDecimal(value, digits);
+        if (!r.zero) return (r.negative ? "-" : "") + r.text;
+    }
+
+    return formatFraction(value);
 }
 
 function getVariableName(index) {
@@ -573,21 +690,9 @@ function getVariableName(index) {
 }
 
 function formatFraction(value) {
-    if (Math.abs(value - Math.round(value)) < 1e-9) {
-        return String(Math.round(value));
-    }
+    if (value.d === 1n) return value.n.toString();
 
-    const x = Math.abs(value);
-
-    for (let d = 2; d <= 1000; d++) {
-        const num = Math.round(x * d);
-
-        if (Math.abs(x * d - num) < 1e-7) {
-            return (value < 0 ? "-" : "") + num + "/" + d;
-        }
-    }
-
-    return formatNumber(value);
+    return value.n.toString() + "/" + value.d.toString();
 }
 
 function coefText(value) {
@@ -636,7 +741,72 @@ function getExamples() {
             title: "مثال 6: لا يوجد حل",
             type: "none",
             matrix: [[1, 1, 1, 3], [2, 2, 2, 5], [1, -1, 0, 0]],
-            answer: "لا يوجد حل (ظهر صف [ 0 0 0 | -1 ])"
+            answer: "لا يوجد حل (ظهر صف [ 0 0 0 | 1 ])"
+        },
+        {
+            title: "مثال 7: معادلات أكثر من المجهولات (متسق)",
+            type: "unique",
+            matrix: [[1, 1, 1, 6], [2, -1, 1, 3], [1, 2, -1, 2], [3, 1, 2, 11]],
+            answer: "x1 = 1 , x2 = 2 , x3 = 3"
+        },
+        {
+            title: "مثال 8: معادلات أكثر من المجهولات (غير متسق)",
+            type: "none",
+            matrix: [[1, 1, 2], [1, -1, 0], [2, 1, 4]],
+            answer: "لا يوجد حل (ظهر صف [ 0 0 | 1 ])"
+        },
+        {
+            title: "مثال 9: نظام متجانس (كل B = 0)",
+            type: "infinite",
+            matrix: [[1, 2, -1, 0], [2, 1, 1, 0], [1, -1, 2, 0]],
+            answer: "x1 = −x3 , x2 = x3 , x3 = x3 (Free Variable)"
+        },
+        {
+            title: "مثال 10: متغيران حران",
+            type: "infinite",
+            matrix: [[1, 1, 1, 1, 4], [1, -1, 1, -1, 0]],
+            answer: "x1 = 2 − x3 , x2 = 2 − x4 , x3 = x3 (Free Variable) , x4 = x4 (Free Variable)"
+        },
+        {
+            title: "مثال 11: نظام يحتوي على صف أصفار",
+            type: "infinite",
+            matrix: [[1, 1, 1, 3], [0, 0, 0, 0], [1, -1, 0, 0]],
+            answer: "x1 = 1.5 − 0.5x3 , x2 = 1.5 − 0.5x3 , x3 = x3 (Free Variable)"
+        },
+        {
+            title: "مثال 12: معادلة واحدة بمجهولين",
+            type: "infinite",
+            matrix: [[1, 1, 3]],
+            answer: "x1 = 3 − x2 , x2 = x2 (Free Variable)"
+        },
+        {
+            title: "مثال 13: معادلة واحدة بمجهول واحد",
+            type: "unique",
+            matrix: [[2, 6]],
+            answer: "x1 = 3"
+        },
+        {
+            title: "مثال 14: نظام 5 × 5",
+            type: "unique",
+            matrix: [[2, 1, 0, 0, 1, 9], [1, 3, 1, 0, 0, 10], [0, 1, 4, 1, 0, 18], [0, 0, 1, 5, 1, 28], [1, 0, 0, 1, 6, 35]],
+            answer: "x1 = 1 , x2 = 2 , x3 = 3 , x4 = 4 , x5 = 5"
+        },
+        {
+            title: "مثال 15: نظام 10 × 10 (أقصى حجم)",
+            type: "unique",
+            matrix: [
+                [2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [-1, 2, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, -1, 2, -1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, -1, 2, -1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, -1, 2, -1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, -1, 2, -1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, -1, 2, -1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, -1, 2, -1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, -1, 2, -1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, -1, 2, 1]
+            ],
+            answer: "x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = x9 = x10 = 1"
         }
     ];
 }
@@ -746,4 +916,12 @@ function loadExample(example) {
     solve();
 
     document.querySelector(".steps-card").scrollIntoView({ behavior: "smooth" });
+}
+
+function wireTryButtons() {
+    document.querySelectorAll(".try-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            loadExample({ matrix: JSON.parse(btn.dataset.matrix) });
+        });
+    });
 }

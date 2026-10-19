@@ -12,11 +12,22 @@
 <div class="container">
 
     <header class="header">
+        <span class="hero-label">Linear Systems Solver</span>
         <h1>Gaussian | Gauss-Jordan</h1>
         <p>حل أنظمة المعادلات الخطية خطوة بخطوة</p>
+        <p class="hero-text">
+            Type in the coefficients of your system, pick Gaussian or Gauss-Jordan elimination,
+            and watch the matrix being reduced one row operation at a time until the final solution appears.
+        </p>
+        <ul class="hero-chips">
+            <li>Exact fraction arithmetic</li>
+            <li>Every row operation shown</li>
+            <li>Echelon &amp; reduced echelon forms</li>
+            <li>Detects unique, infinite or no solution</li>
+        </ul>
     </header>
 
-    <section class="input-card">
+    <section id="solver" class="input-card">
         <div class="settings">
             <div class="input-group">
                 <label for="variablesCount">عدد المجهولات</label>
@@ -27,6 +38,10 @@
                     <option value="4">4</option>
                     <option value="5">5</option>
                     <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
                 </select>
             </div>
 
@@ -39,6 +54,10 @@
                     <option value="4">4</option>
                     <option value="5">5</option>
                     <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
                 </select>
             </div>
 
@@ -53,7 +72,7 @@
 
         <div class="equation-help">
             <strong>طريقة الإدخال:</strong>
-            <span>اكتب معاملات كل معادلة فقط (x1 … xn) ثم القيمة B. مثال: 2x₁ − x₂ + 3x₃ = 10 تُكتب: 2 , -1 , 3 | 10</span>
+            <span>اكتب معاملات كل معادلة فقط (x1 … xn) ثم القيمة B.</span>
         </div>
 
         <div class="grid-wrapper">
@@ -66,11 +85,8 @@
         </div>
     </section>
 
-    <section class="steps-card">
-        <div class="status-area">
-            <div id="statusMessage" class="status-message">في انتظار إدخال المعاملات...</div>
-            <div id="stepCounter" class="step-counter">-</div>
-        </div>
+    <section id="stepsCard" class="steps-card hidden">
+        <div id="statusMessage" class="status-message">في انتظار إدخال المعاملات...</div>
 
         <div class="matrix-title">Augmented Matrix</div>
 
@@ -78,22 +94,18 @@
             <table id="matrixTable"></table>
         </div>
 
-        <div class="operation-box">
-            <div class="operation-title">العملية الحالية</div>
-            <div id="operationText">لم تبدأ الخوارزمية بعد.</div>
-        </div>
-
-        <div class="controls">
-            <button id="previousBtn" disabled>الخطوة السابقة</button>
-            <button id="autoBtn" disabled>تشغيل تلقائي</button>
-            <button id="nextBtn" disabled>الخطوة التالية</button>
-            <button id="resetStepsBtn" disabled>إعادة الخطوات</button>
-        </div>
-
         <div id="resultBox" class="result-box hidden"></div>
+
+        <button id="toggleStepsBtn" class="primary-btn steps-toggle" disabled>إظهار خطوات الحل</button>
+
+        <div id="stepsSection" class="hidden">
+            <h3 class="steps-title">Steps</h3>
+
+            <div id="stepsGrid" class="steps-grid"></div>
+        </div>
     </section>
 
-    <section class="info-card">
+    <section id="operations" class="info-card">
         <h2>Elementary row operations</h2>
         <div class="operations-grid">
             <div class="operation"><span>1</span><div><h3>Multiply a row (equation) by a non zero constant</h3><p>Ri → kRi</p></div></div>
@@ -102,7 +114,7 @@
         </div>
     </section>
 
-    <section class="info-card">
+    <section id="properties" class="info-card">
         <h2>Properties of linear equation</h2>
         <ol class="text-list ltr">
             <li>Doesn't involve any roots of variables.</li>
@@ -111,7 +123,91 @@
         </ol>
     </section>
 
-    <section class="info-card">
+    <section id="solution-types" class="info-card">
+        <h2>Three possibilities of linear system of equations</h2>
+
+        <div class="types-grid">
+            <div class="type-box">
+                <h3>Consistent System</h3>
+                <p>System of equations that has at least one solution.</p>
+                <ol class="text-list ltr">
+                    <li>Has exactly one solution.</li>
+                    <li>Has infinitely many solutions.</li>
+                </ol>
+            </div>
+
+            <div class="type-box inconsistent">
+                <h3>Inconsistent System</h3>
+                <p>System of equations that has no solution.</p>
+                <ol class="text-list ltr" start="3">
+                    <li>Has no solution.</li>
+                </ol>
+            </div>
+        </div>
+
+        <h3 class="sub-heading">Geometric meaning (two lines in a plane)</h3>
+
+        <div class="case-grid">
+            <div class="case-card">
+                <div class="case-title"><span>1</span>The line L₁ intersects line L₂ at only one point. <br><br>(One Solution)</div>
+                <img src="./Unique_solution.png" alt="One Solution">
+                <div class="case-equations"><div>2x + y = 4</div><div>x + y = 2</div></div>
+                <div class="case-solution">Solution: <b>x = 2 , y = 0</b></div>
+                <button class="primary-btn try-btn" data-matrix="[[2,1,4],[1,1,2]]">جرّب في الحاسبة</button>
+            </div>
+
+            <div class="case-card">
+                <div class="case-title"><span>2</span>The line L₁ coincides with line L₂. <br><br>(Infinite Solutions)</div>
+                <img src="./Infinite_solutions.png" alt="Infinite Solutions">
+                <div class="case-equations"><div>2x + 2y = 4</div><div>x + y = 2</div></div>
+                <div class="case-solution">Solution: <b>Infinitely many solutions</b></div>
+                <button class="primary-btn try-btn" data-matrix="[[2,2,4],[1,1,2]]">جرّب في الحاسبة</button>
+            </div>
+
+            <div class="case-card">
+                <div class="case-title"><span>3</span>The lines L₁, L₂ are parallel. <br><br>(No Solution)</div>
+                <img src="./No_solution.png" alt="No Solution">
+                <div class="case-equations"><div>x + y = 4</div><div>2x + 2y = 6</div></div>
+                <div class="case-solution">Solution: <b>No Solution</b></div>
+                <button class="primary-btn try-btn" data-matrix="[[1,1,4],[2,2,6]]">جرّب في الحاسبة</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="homogeneous" class="info-card">
+        <h2>Homogeneous System نظام معادلات خطية متجانس</h2>
+
+        <p class="homo-def">
+            <b>Homogeneous system:</b> system in which all constants are zero.
+            <span class="rtl-text">(كل الثوابت قيمتها صفر، أي أن عمود B كله أصفار)</span>
+        </p>
+
+        <div class="note-box">
+            <div class="note-label">Note</div>
+
+            <ol class="text-list ltr">
+                <li>
+                    Homogeneous &amp; number of equations &lt; number of variables
+                    <span class="arrow">⇒</span> infinite solutions.
+                    <div class="rtl-text">يبقى له عدد لا نهائي من الحلول.</div>
+                    <button class="primary-btn try-btn" data-matrix="[[1,1,1,0],[1,-1,2,0]]">جرّب في الحاسبة</button>
+                </li>
+                <li>
+                    Homogeneous &amp; number of equations = number of variables
+                    <span class="arrow">⇒</span> unique solution, which is the trivial (zero) solution.
+                    <div class="rtl-text">يبقى له حل وحيد وهو الحل الصفري.</div>
+                    <button class="primary-btn try-btn" data-matrix="[[1,1,0],[1,-1,0]]">جرّب في الحاسبة</button>
+                </li>
+            </ol>
+        </div>
+
+        <p class="homo-extra rtl-text">
+            ملاحظات إضافية: النظام المتجانس (Homogeneous) دائماً متسق (Consistent) لأن الحل الصفري يحققه دائماً.
+            (مثال 9 في قسم الأمثلة).
+        </p>
+    </section>
+
+    <section id="ref-form" class="info-card">
         <h2>Row-Echelon Form</h2>
         <ol class="text-list">
             <li>
@@ -131,7 +227,7 @@
         </ol>
     </section>
 
-    <section class="info-card">
+    <section id="rref-form" class="info-card">
         <h2>Reduced Row-Echelon Form</h2>
         <ol class="text-list">
             <li>المصفوفة تكون في الـ Row-Echelon Form</li>
@@ -143,7 +239,7 @@
         </ol>
     </section>
 
-    <section class="info-card">
+    <section id="gaussian" class="info-card">
         <h2>Gaussian Elimination</h2>
         <ol class="text-list">
             <li>حدد أول عمود غير صفري على يسار المصفوفة.</li>
@@ -154,7 +250,7 @@
         </ol>
     </section>
 
-    <section class="info-card">
+    <section id="gauss-jordan" class="info-card">
         <h2>Gauss-Jordan Elimination</h2>
         <ol class="text-list">
             <li>حدد أول عمود غير صفري على يسار المصفوفة.</li>
@@ -165,13 +261,13 @@
         </ol>
     </section>
 
-    <section class="info-card">
+    <section id="examples" class="info-card">
         <h2>Solved Examples</h2>
         <p class="examples-note">اضغط على «جرّب المثال» ليتم إدخال المعاملات وحلها تلقائياً، ثم قارن نتيجة البرنامج بالحل المكتوب في المثال.</p>
         <div id="examplesGrid" class="examples-grid"></div>
     </section>
 
-    <section class="info-card">
+    <section id="applications" class="info-card">
         <h2>Applications in Programming</h2>
         <p class="examples-note">الطرق دي (Gaussian و Gauss-Jordan) من أهم الخوارزميات اللي بتتستخدم في البرمجة كل يوم، حتى لو مش شايفها مباشرة. دي أشهر استخداماتها:</p>
 
@@ -212,6 +308,29 @@
             </div>
         </div>
     </section>
+
+    <footer class="site-footer">
+        <h3 class="footer-title">Gaussian | Gauss-Jordan</h3>
+        <p class="footer-text">
+            A simple way to solve systems of linear equations and understand each row operation behind the answer.
+        </p>
+
+        <h4 class="footer-heading">Explore</h4>
+        <ul class="footer-links">
+            <li><a href="#solver">Solver</a></li>
+            <li><a href="#operations">Row Operations</a></li>
+            <li><a href="#solution-types">Solution Types</a></li>
+            <li><a href="#homogeneous">Homogeneous Systems</a></li>
+            <li><a href="#ref-form">Row-Echelon Form</a></li>
+            <li><a href="#rref-form">Reduced Row-Echelon Form</a></li>
+            <li><a href="#gaussian">Gaussian Elimination</a></li>
+            <li><a href="#gauss-jordan">Gauss-Jordan Elimination</a></li>
+            <li><a href="#examples">Solved Examples</a></li>
+            <li><a href="#applications">Applications</a></li>
+        </ul>
+
+        <p class="footer-copy">© All Rights Reserved | Developed by Basmala Amr El-Sayed.</p>
+    </footer>
 
 </div>
 
