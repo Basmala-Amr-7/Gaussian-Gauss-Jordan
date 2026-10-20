@@ -42,6 +42,8 @@ function buildGrid(clear) {
     n = Number(variablesCount.value);
     m = Number(equationsCount.value);
 
+    inputGrid.classList.toggle("dense", n > 10);
+
     inputGrid.innerHTML = "";
 
     const head = document.createElement("tr");
@@ -292,6 +294,25 @@ function solve() {
     renderResult(analyze(steps[steps.length - 1].matrix));
 }
 
+/*
+ * اختيار الصف الذي سيحتوي على الـ Leading:
+ * 1) لو في العمود صف (من الصف الحالي فما أسفل) قيمته 1 بالضبط نختاره (فنبدّل الصفوف بدل الضرب).
+ * 2) وإلا نختار أول صف غير صفري.
+ */
+function findPivotRow(matrix, r, col) {
+    const rows = matrix.length;
+
+    for (let i = r; i < rows; i++) {
+        if (isOne(matrix[i][col])) return i;
+    }
+
+    for (let i = r; i < rows; i++) {
+        if (!isZero(matrix[i][col])) return i;
+    }
+
+    return -1;
+}
+
 function computeSteps(original, gaussJordan) {
     const result = [];
     const matrix = cloneMatrix(original);
@@ -301,21 +322,39 @@ function computeSteps(original, gaussJordan) {
     let r = 0;
 
     for (let col = 0; col < cols && r < rows; col++) {
-        let p = -1;
-        for (let i = r; i < rows; i++) {
-            if (!isZero(matrix[i][col])) { p = i; break; }
-        }
+        const p = findPivotRow(matrix, r, col);
 
         if (p === -1) continue;
 
+        const colName = col < cols - 1 ? getVariableName(col) : "B";
+
+        /* ---- العملية الثانية: تبديل صفوف ---- */
         if (p !== r) {
+            const oldTop = matrix[r][col];
+            const newTop = matrix[p][col];
+
             const tmp = matrix[r];
             matrix[r] = matrix[p];
             matrix[p] = tmp;
 
+            let title;
+            if (isOne(newTop) && isZero(oldTop)) {
+                title = "أول عنصر في عمود " + colName + " يساوي صفر، والصف " + (p + 1) +
+                    " يبدأ بـ 1، فنبدّل الصفين ليصبح الـ Leading 1 مباشرة بدون ضرب.";
+            } else if (isOne(newTop)) {
+                title = "أول عنصر في عمود " + colName + " لا يساوي 1، والصف " + (p + 1) +
+                    " يبدأ بـ 1، فنبدّل الصفين ليصبح الـ Leading 1 مباشرة بدون ضرب.";
+            } else {
+                title = "أول عنصر في عمود " + colName + " يساوي صفر، فنبدّل مع الصف " +
+                    (p + 1) + " (أول صف غير صفري في هذا العمود).";
+            }
+
             result.push({
-                title: "",
-                ops: ["R" + (r + 1) + " <=> R" + (p + 1)],
+                title: title,
+                ops: [{
+                    ar: "تبديل الصف " + (r + 1) + " مع الصف " + (p + 1),
+                    f: "R" + (r + 1) + " ↔ R" + (p + 1)
+                }],
                 matrix: cloneMatrix(matrix),
                 changed: [r, p],
                 pivotRow: r,
@@ -323,13 +362,20 @@ function computeSteps(original, gaussJordan) {
             });
         }
 
+        /* ---- العملية الأولى: الضرب في ثابت ---- */
         const pivot = matrix[r][col];
         if (!isOne(pivot)) {
             matrix[r] = matrix[r].map(function (x) { return fdiv(x, pivot); });
 
+            const k = coefText(fdiv(ONE, pivot));
+
             result.push({
-                title: "",
-                ops: [coefText(fdiv(ONE, pivot)) + "R" + (r + 1) + " => R" + (r + 1)],
+                title: "نجعل أول عنصر في الصف " + (r + 1) + " يساوي 1 (Leading 1) بضرب الصف في مقلوب " +
+                    formatFraction(pivot) + ".",
+                ops: [{
+                    ar: "اضرب الصف " + (r + 1) + " في " + k,
+                    f: k + "R" + (r + 1) + " → R" + (r + 1)
+                }],
                 matrix: cloneMatrix(matrix),
                 changed: [r],
                 pivotRow: r,
@@ -337,6 +383,7 @@ function computeSteps(original, gaussJordan) {
             });
         }
 
+        /* ---- العملية الثالثة: جمع مضاعف صف على صف آخر ---- */
         const start = gaussJordan ? 0 : r + 1;
         const ops = [];
         const changed = [];
@@ -352,13 +399,20 @@ function computeSteps(original, gaussJordan) {
                 return fsub(x, fmul(factor, pivotRow[c]));
             });
 
-            ops.push(coefText(fneg(factor)) + "R" + (r + 1) + " + R" + (i + 1) + " => R" + (i + 1));
+            const k = coefText(fneg(factor));
+
+            ops.push({
+                ar: "أضف " + k + " × الصف " + (r + 1) + " إلى الصف " + (i + 1),
+                f: k + "R" + (r + 1) + " + R" + (i + 1) + " → R" + (i + 1)
+            });
             changed.push(i);
         }
 
         if (ops.length > 0) {
             result.push({
-                title: "",
+                title: gaussJordan
+                    ? "نجعل باقي عناصر عمود " + colName + " أصفاراً (أسفل وأعلى الـ Leading 1)."
+                    : "نجعل العناصر أسفل الـ Leading 1 في عمود " + colName + " أصفاراً.",
                 ops: ops,
                 matrix: cloneMatrix(matrix),
                 changed: changed,
@@ -543,6 +597,8 @@ function renderMatrix(matrix) {
         }
         matrixTable.appendChild(tr);
     }
+
+    matrixTable.classList.toggle("dense", matrix[0].length > 10);
 }
 
 function renderSteps(list) {
@@ -575,7 +631,18 @@ function renderSteps(list) {
 
             step.ops.forEach(function (op) {
                 const line = document.createElement("div");
-                line.textContent = op;
+                line.className = "op-line";
+
+                const ar = document.createElement("span");
+                ar.className = "op-ar";
+                ar.textContent = op.ar;
+
+                const f = document.createElement("span");
+                f.className = "op-f";
+                f.textContent = op.f;
+
+                line.appendChild(ar);
+                line.appendChild(f);
                 opsBox.appendChild(line);
             });
 
@@ -593,7 +660,8 @@ function renderSteps(list) {
 
 function buildStepMatrix(step) {
     const table = document.createElement("table");
-    table.className = "step-matrix" + (step.matrix[0].length > 7 ? " compact" : "");
+    const width = step.matrix[0].length;
+    table.className = "step-matrix" + (width > 7 ? " compact" : "") + (width > 12 ? " tiny" : "");
 
     step.matrix.forEach(function (row, r) {
         const tr = document.createElement("tr");
@@ -616,6 +684,7 @@ function buildStepMatrix(step) {
 
 function renderEmptyMatrix() {
     matrixTable.innerHTML = "";
+    matrixTable.classList.toggle("dense", n > 9);
     const tr = document.createElement("tr");
     for (let c = 0; c <= n; c++) {
         const th = document.createElement("th");
@@ -705,6 +774,22 @@ function coefText(value) {
     return text;
 }
 
+/* مصفوفة 3 قطرية: 2 على القطر الرئيسي و -1 حوله، والحل كل المجاهيل = 1 */
+function tridiagonalSystem(size) {
+    const rows = [];
+
+    for (let i = 0; i < size; i++) {
+        const row = new Array(size + 1).fill(0);
+        row[i] = 2;
+        if (i > 0) row[i - 1] = -1;
+        if (i < size - 1) row[i + 1] = -1;
+        row[size] = (i === 0 || i === size - 1) ? 1 : 0;
+        rows.push(row);
+    }
+
+    return rows;
+}
+
 function getExamples() {
     return [
         {
@@ -792,7 +877,7 @@ function getExamples() {
             answer: "x1 = 1 , x2 = 2 , x3 = 3 , x4 = 4 , x5 = 5"
         },
         {
-            title: "مثال 15: نظام 10 × 10 (أقصى حجم)",
+            title: "مثال 15: نظام 10 × 10",
             type: "unique",
             matrix: [
                 [2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -807,6 +892,12 @@ function getExamples() {
                 [0, 0, 0, 0, 0, 0, 0, 0, -1, 2, 1]
             ],
             answer: "x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = x9 = x10 = 1"
+        },
+        {
+            title: "مثال 16: نظام 20 × 20 (أقصى حجم)",
+            type: "unique",
+            matrix: tridiagonalSystem(20),
+            answer: "x1 = x2 = x3 = ... = x20 = 1"
         }
     ];
 }

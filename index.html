@@ -42,6 +42,16 @@
                     <option value="8">8</option>
                     <option value="9">9</option>
                     <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
                 </select>
             </div>
 
@@ -58,6 +68,16 @@
                     <option value="8">8</option>
                     <option value="9">9</option>
                     <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
                 </select>
             </div>
 
@@ -178,25 +198,49 @@
         <h2>Homogeneous System نظام معادلات خطية متجانس</h2>
 
         <p class="homo-def">
-            <b>Homogeneous system:</b> system in which all constants are zero.
+            <b>Definition:</b> A system in which all constants are zero.
             <span class="rtl-text">(كل الثوابت قيمتها صفر، أي أن عمود B كله أصفار)</span>
         </p>
 
         <div class="note-box">
-            <div class="note-label">Note</div>
+            <div class="note-label">Notes</div>
 
             <ol class="text-list ltr">
                 <li>
-                    Homogeneous &amp; number of equations &lt; number of variables
-                    <span class="arrow">⇒</span> infinite solutions.
+                    Homogeneous System &amp; Number of Equations &lt; Number of Variables
+                    <span class="arrow">⇒</span> Infinite Solutions
                     <div class="rtl-text">يبقى له عدد لا نهائي من الحلول.</div>
-                    <button class="primary-btn try-btn" data-matrix="[[1,1,1,0],[1,-1,2,0]]">جرّب في الحاسبة</button>
+                    <div class="btn-row">
+                        <button class="primary-btn try-btn" data-matrix="[[1,1,1,0],[1,-1,2,0]]">جرّب في الحاسبة</button>
+                    </div>
                 </li>
+
                 <li>
-                    Homogeneous &amp; number of equations = number of variables
-                    <span class="arrow">⇒</span> unique solution, which is the trivial (zero) solution.
-                    <div class="rtl-text">يبقى له حل وحيد وهو الحل الصفري.</div>
-                    <button class="primary-btn try-btn" data-matrix="[[1,1,0],[1,-1,0]]">جرّب في الحاسبة</button>
+                    Homogeneous System &amp; Number of Equations = Number of Variables
+                    <span class="arrow">⇒</span> Unique Solution or Infinite Solutions
+                    <div class="rtl-text">يبقى له حل وحيد وهو الحل الصفري (Trivial Solution)، أو عدد لا نهائي من الحلول.</div>
+                    <ul class="sub-list rtl-text">
+                        <li><b>Unique Solution:</b> لو كل المتغيرات لها leading.</li>
+                        <li><b>Infinite Solutions:</b> لو فيه Free Variables.</li>
+                    </ul>
+                    <div class="btn-row">
+                        <button class="primary-btn try-btn" data-matrix="[[1,1,0],[1,-1,0]]">جرّب في الحاسبة (حل وحيد)</button>
+                        <button class="primary-btn try-btn" data-matrix="[[1,2,-1,0],[2,1,1,0],[1,-1,2,0]]">جرّب في الحاسبة (حلول لا نهائية)</button>
+                    </div>
+                </li>
+
+                <li>
+                    Homogeneous System &amp; Number of Equations &gt; Number of Variables
+                    <span class="arrow">⇒</span> Unique Solution or Infinite Solutions
+                    <div class="rtl-text">يبقى له حل وحيد وهو الحل الصفري (Trivial Solution)، أو عدد لا نهائي من الحلول.</div>
+                    <ul class="sub-list rtl-text">
+                        <li><b>Unique Solution:</b> لو كل المتغيرات لها leading.</li>
+                        <li><b>Infinite Solutions:</b> لو فيه Free Variables.</li>
+                    </ul>
+                    <div class="btn-row">
+                        <button class="primary-btn try-btn" data-matrix="[[1,1,0],[1,-1,0],[2,3,0]]">جرّب في الحاسبة (حل وحيد)</button>
+                        <button class="primary-btn try-btn" data-matrix="[[1,1,0],[2,2,0],[3,3,0]]">جرّب في الحاسبة (حلول لا نهائية)</button>
+                    </div>
                 </li>
             </ol>
         </div>
@@ -307,6 +351,11 @@
             <div class="use-card">
                 <h3>التشفير وتصحيح الأخطاء</h3>
                 <p>بتتستخدم نسخة من Gaussian Elimination على أعداد 0 و 1 (Field GF(2)) في فك الشفرات وتصحيح الأخطاء في أنظمة الاتصالات.</p>
+            </div>
+
+            <div class="use-card">
+                <h3>البرمجة الخطية والتحسين (Optimization)</h3>
+                <p>خوارزمية Simplex المستخدمة في مسائل التحسين (زي توزيع الموارد وتقليل التكلفة وجدولة المهام) بتعتمد على نفس عملية الـ Pivot بتاعة Gauss-Jordan في كل خطوة لتحديث الجدول والوصول لأفضل حل.</p>
             </div>
         </div>
     </section>

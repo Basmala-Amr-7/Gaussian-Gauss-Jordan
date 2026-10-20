@@ -140,13 +140,19 @@ button:disabled {
     flex-wrap: wrap;
 }
 
+/* الجداول الكبيرة (حتى 20 × 20) تتمرر أفقياً بدون قص من الجانب */
 .grid-wrapper,
 .matrix-wrapper,
 .step-matrix-wrap {
     width: 100%;
     overflow-x: auto;
     display: flex;
-    justify-content: center;
+}
+
+.grid-wrapper > table,
+.matrix-wrapper > table,
+.step-matrix-wrap > table {
+    margin: 0 auto;
 }
 
 .grid-wrapper {
@@ -211,6 +217,22 @@ button:disabled {
     padding-left: 6px;
 }
 
+/* مقاسات أصغر عند وجود أكثر من 10 مجاهيل */
+#inputGrid.dense {
+    border-spacing: 4px;
+}
+
+#inputGrid.dense th {
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+#inputGrid.dense input {
+    width: 54px;
+    height: 36px;
+    font-size: 14px;
+}
+
 .matrix-title {
     text-align: center;
     font-size: 20px;
@@ -233,6 +255,18 @@ button:disabled {
     font-family: Consolas, monospace;
     font-size: 17px;
     font-weight: bold;
+}
+
+#matrixTable.dense {
+    border-spacing: 3px;
+}
+
+#matrixTable.dense th,
+#matrixTable.dense td {
+    min-width: 46px;
+    height: 38px;
+    padding: 4px 6px;
+    font-size: 13px;
 }
 
 #matrixTable th {
@@ -426,6 +460,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0;
 }
 
 .example-head {
@@ -464,6 +499,12 @@ button:disabled {
     border-radius: 8px;
     padding: 10px 14px;
     overflow-x: auto;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.example-equations div {
+    white-space: nowrap;
 }
 
 .example-answer {
@@ -530,6 +571,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    min-width: 0;
 }
 
 .step-card.final {
@@ -564,17 +606,38 @@ button:disabled {
     color: #374151;
 }
 
+/* العمليات مكتوبة بالعربي + الصيغة الرياضية تحتها */
 .step-ops {
+    direction: rtl;
+    text-align: right;
+    background: var(--p-50);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.op-line {
+    padding: 4px 0;
+}
+
+.op-line + .op-line {
+    border-top: 1px dashed var(--p-200);
+}
+
+.op-ar {
+    display: block;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #374151;
+}
+
+.op-f {
+    display: block;
     direction: ltr;
     text-align: center;
     font-family: Consolas, monospace;
     font-size: 15px;
-    line-height: 1.9;
     font-weight: bold;
     color: var(--p-700);
-    background: var(--p-50);
-    border-radius: 8px;
-    padding: 6px 10px;
 }
 
 .step-matrix {
@@ -610,6 +673,17 @@ button:disabled {
     min-width: 36px;
     padding: 3px 4px;
     font-size: 13px;
+}
+
+.step-matrix.tiny {
+    border-spacing: 2px;
+}
+
+.step-matrix.tiny td {
+    min-width: 28px;
+    height: 28px;
+    padding: 2px 3px;
+    font-size: 11px;
 }
 
 .steps-toggle {
@@ -824,8 +898,8 @@ button:disabled {
     font-weight: bold;
 }
 
-.note-box li {
-    margin-bottom: 16px;
+.note-box > ol > li {
+    margin-bottom: 20px;
 }
 
 .note-box li .rtl-text {
@@ -833,6 +907,34 @@ button:disabled {
     font-weight: bold;
     margin: 2px 0 8px;
     text-align: right;
+}
+
+.note-box .sub-list {
+    direction: rtl;
+    text-align: right;
+    list-style: disc;
+    padding-right: 24px;
+    margin: 4px 0 10px;
+    line-height: 1.9;
+    font-weight: normal;
+    color: #374151;
+}
+
+.note-box .sub-list li {
+    margin-bottom: 4px;
+}
+
+.note-box .sub-list b {
+    color: var(--p-700);
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
 }
 
 .arrow {
@@ -929,6 +1031,10 @@ button:disabled {
 
     #inputGrid input {
         width: 58px;
+    }
+
+    #inputGrid.dense input {
+        width: 50px;
     }
 }
 
