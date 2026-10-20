@@ -1,4 +1,3 @@
-/* Variables & Reset */
 :root {
     --p-50: #faf5ff;
     --p-100: #f3e8ff;
@@ -28,14 +27,12 @@ body {
     min-height: 100vh;
 }
 
-/* Layout & Containers */
 .container {
     width: 92%;
     max-width: 1200px;
     margin: 30px auto;
 }
 
-/* Header */
 .header {
     background: linear-gradient(135deg, var(--p-400), var(--p-600));
     color: white;
@@ -58,7 +55,6 @@ body {
     opacity: 0.95;
 }
 
-/* Base Cards */
 .input-card,
 .steps-card,
 .info-card {
@@ -70,7 +66,6 @@ body {
     box-shadow: 0 5px 20px rgba(147, 51, 234, 0.07);
 }
 
-/* Settings & Inputs */
 .settings {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -105,7 +100,6 @@ body {
     box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
 }
 
-/* Buttons & Actions */
 button {
     border: none;
     border-radius: 9px;
@@ -146,7 +140,6 @@ button:disabled {
     flex-wrap: wrap;
 }
 
-/* Grids & Matrices */
 .grid-wrapper,
 .matrix-wrapper,
 .step-matrix-wrap {
@@ -262,7 +255,6 @@ button:disabled {
     border-left: 4px solid var(--p-400);
 }
 
-/* Inline Matrix */
 .mx {
     display: inline-table;
     margin: 8px 14px;
@@ -284,7 +276,6 @@ button:disabled {
     line-height: 1;
 }
 
-/* Helper Elements & Messages */
 .equation-help {
     background: var(--p-50);
     border: 1px solid var(--p-200);
@@ -309,7 +300,6 @@ button:disabled {
     font-weight: bold;
 }
 
-/* Results Section */
 .result-box {
     margin-top: 22px;
     padding: 18px 20px;
@@ -351,7 +341,6 @@ button:disabled {
     line-height: 2;
 }
 
-/* Operations Info */
 .info-card h2 {
     margin-bottom: 18px;
     font-size: 20px;
@@ -402,7 +391,6 @@ button:disabled {
     color: #6b7280;
 }
 
-/* Lists */
 .text-list {
     padding-right: 24px;
     line-height: 2;
@@ -418,7 +406,6 @@ button:disabled {
     padding-left: 24px;
 }
 
-/* Examples Section */
 .examples-note {
     margin-bottom: 18px;
     line-height: 1.8;
@@ -495,7 +482,6 @@ button:disabled {
     align-self: flex-start;
 }
 
-/* Uses Section */
 .uses-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -522,7 +508,6 @@ button:disabled {
     font-size: 14px;
 }
 
-/* Steps Section */
 .steps-title {
     margin: 22px 0 14px;
     font-size: 20px;
@@ -634,7 +619,6 @@ button:disabled {
     font-size: 15px;
 }
 
-/* Hero Section */
 .hero-label {
     display: inline-block;
     direction: ltr;
@@ -673,7 +657,6 @@ button:disabled {
     font-weight: bold;
 }
 
-/* System Types & Solutions */
 .types-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -807,7 +790,6 @@ button:disabled {
     margin-top: auto;
 }
 
-/* Typographics & Notes */
 .homo-def {
     direction: ltr;
     text-align: left;
@@ -866,7 +848,6 @@ button:disabled {
     font-size: 14px;
 }
 
-/* Footer Section */
 .site-footer {
     direction: ltr;
     text-align: center;
@@ -927,7 +908,6 @@ button:disabled {
     font-weight: bold;
 }
 
-/* Media Queries (Merged) */
 @media (max-width: 900px) {
     .case-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
