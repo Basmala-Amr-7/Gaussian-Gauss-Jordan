@@ -16,7 +16,6 @@ const stepsSection = document.getElementById("stepsSection");
 const toggleStepsBtn = document.getElementById("toggleStepsBtn");
 const resultBox = document.getElementById("resultBox");
 
-
 let n = 3;
 let m = 3;
 let steps = [];
@@ -294,11 +293,6 @@ function solve() {
     renderResult(analyze(steps[steps.length - 1].matrix));
 }
 
-/*
- * اختيار الصف الذي سيحتوي على الـ Leading:
- * 1) لو في العمود صف (من الصف الحالي فما أسفل) قيمته 1 بالضبط نختاره (فنبدّل الصفوف بدل الضرب).
- * 2) وإلا نختار أول صف غير صفري.
- */
 function findPivotRow(matrix, r, col) {
     const rows = matrix.length;
 
@@ -328,7 +322,6 @@ function computeSteps(original, gaussJordan) {
 
         const colName = col < cols - 1 ? getVariableName(col) : "B";
 
-        /* ---- العملية الثانية: تبديل صفوف ---- */
         if (p !== r) {
             const oldTop = matrix[r][col];
             const newTop = matrix[p][col];
@@ -362,7 +355,6 @@ function computeSteps(original, gaussJordan) {
             });
         }
 
-        /* ---- العملية الأولى: الضرب في ثابت ---- */
         const pivot = matrix[r][col];
         if (!isOne(pivot)) {
             matrix[r] = matrix[r].map(function (x) { return fdiv(x, pivot); });
@@ -383,7 +375,6 @@ function computeSteps(original, gaussJordan) {
             });
         }
 
-        /* ---- العملية الثالثة: جمع مضاعف صف على صف آخر ---- */
         const start = gaussJordan ? 0 : r + 1;
         const ops = [];
         const changed = [];
@@ -513,7 +504,7 @@ function expression(vec, free) {
         const name = getVariableName(free[k]);
         const negative = a.n < 0n;
         const abs = negative ? fneg(a) : a;
-        const coef = isOne(abs) ? "" : formatNumber(abs);
+        const coef = isOne(abs) ? "" : (abs.d === 1n ? abs.n.toString() : "(" + formatFraction(abs) + ")");
 
         if (text === "") {
             text = (negative ? "−" : "") + coef + name;
@@ -726,31 +717,7 @@ function cloneMatrix(matrix) {
     return matrix.map(function (row) { return row.slice(); });
 }
 
-function toDecimal(a, digits) {
-    const negative = a.n < 0n;
-    const num = negative ? -a.n : a.n;
-    const scale = 10n ** BigInt(digits);
-    const scaled = (2n * num * scale + a.d) / (2n * a.d);
-
-    const intPart = scaled / scale;
-    let fracPart = (scaled % scale).toString().padStart(digits, "0").replace(/0+$/, "");
-
-    let text = intPart.toString();
-    if (fracPart !== "") text += "." + fracPart;
-
-    return { text: text, zero: scaled === 0n, negative: negative };
-}
-
 function formatNumber(value) {
-    if (isZero(value)) return "0";
-
-    if (value.d === 1n) return value.n.toString();
-
-    for (const digits of [3, 6, 9]) {
-        const r = toDecimal(value, digits);
-        if (!r.zero) return (r.negative ? "-" : "") + r.text;
-    }
-
     return formatFraction(value);
 }
 
@@ -774,7 +741,6 @@ function coefText(value) {
     return text;
 }
 
-/* مصفوفة 3 قطرية: 2 على القطر الرئيسي و -1 حوله، والحل كل المجاهيل = 1 */
 function tridiagonalSystem(size) {
     const rows = [];
 
@@ -814,7 +780,7 @@ function getExamples() {
             title: "مثال 4: نظام 2 × 2 بحل كسري",
             type: "unique",
             matrix: [[1, 2, 1], [3, 1, 2]],
-            answer: "x1 = 0.6 , x2 = 0.2"
+            answer: "x1 = 3/5 , x2 = 1/5"
         },
         {
             title: "مثال 5: عدد لا نهائي من الحلول",
@@ -856,7 +822,7 @@ function getExamples() {
             title: "مثال 11: نظام يحتوي على صف أصفار",
             type: "infinite",
             matrix: [[1, 1, 1, 3], [0, 0, 0, 0], [1, -1, 0, 0]],
-            answer: "x1 = 1.5 − 0.5x3 , x2 = 1.5 − 0.5x3 , x3 = x3 (Free Variable)"
+            answer: "x1 = 3/2 − (1/2)x3 , x2 = 3/2 − (1/2)x3 , x3 = x3 (Free Variable)"
         },
         {
             title: "مثال 12: معادلة واحدة بمجهولين",

@@ -140,7 +140,6 @@ button:disabled {
     flex-wrap: wrap;
 }
 
-/* الجداول الكبيرة (حتى 20 × 20) تتمرر أفقياً بدون قص من الجانب */
 .grid-wrapper,
 .matrix-wrapper,
 .step-matrix-wrap {
@@ -217,7 +216,6 @@ button:disabled {
     padding-left: 6px;
 }
 
-/* مقاسات أصغر عند وجود أكثر من 10 مجاهيل */
 #inputGrid.dense {
     border-spacing: 4px;
 }
@@ -606,7 +604,6 @@ button:disabled {
     color: #374151;
 }
 
-/* العمليات مكتوبة بالعربي + الصيغة الرياضية تحتها */
 .step-ops {
     direction: rtl;
     text-align: right;
@@ -1055,4 +1052,9 @@ button:disabled {
         max-width: 260px;
         height: 170px;
     }
+}
+
+#matrixTable td,
+.step-matrix td {
+    white-space: nowrap;
 }
